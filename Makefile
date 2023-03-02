@@ -16,6 +16,8 @@
 
 INCLUDE_DIRS :=
 
+EMACS = $(subst emacs is ,,$(shell type emacs))
+
 ifdef EMACS_BULIDDIR
   INCLUDE_DIRS += -I$(EMACS_BUILDDIR)/src/ -I$(EMACS_BUILDDIR)/lib/
 endif
@@ -30,12 +32,21 @@ CFLAGS += -g3 -Og -finline-small-functions -shared -fPIC
 # Set this to debug make check.
 #GDB = gdb --args
 
-all: ffi-module.so
+all: ffi-module.so ffi.elc
 
 ffi-module.so: ffi-module.o
 	$(CC) $(CFLAGS) $(ALL_INCLUDE_DIRS) $(LDFLAGS) -o ffi-module.so ffi-module.o $(LIBS)
 
 ffi-module.o: ffi-module.c
+
+EMACS_COMPILE_SCRIPT := ' \
+	(add-to-list (quote dynamic-library-alist) "$(PWD)") \
+  (module-load "ffi-module.so") \
+  (byte-compile-file "./ffi.el") \
+'
+
+ffi.elc: ffi-module.so ffi.el
+	$(EMACS) -Q --batch --eval=$(EMACS_COMPILE_SCRIPT);
 
 check: ffi-module.so test.so
 	LD_LIBRARY_PATH=`pwd`:$$LD_LIBRARY_PATH; \
@@ -49,4 +60,4 @@ test.so: test.o
 test.o: test.c
 
 clean:
-	rm -vf ffi-module.o ffi-module.so test.o test.so;
+	rm -vf ffi-module.o ffi-module.so test.o test.so ffi.elc;

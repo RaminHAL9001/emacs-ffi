@@ -1,5 +1,6 @@
 *~
 ffi-module.o
 ffi-module.so
+ffi.elc
 test.o
 test.so
