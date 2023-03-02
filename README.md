@@ -5,7 +5,70 @@ being low-level.
 
 I'd appreciate your feedback, either via email or issues on github.
 
-# Types
+# Building
+
+This build has only been tested on Linux. Build dependencies include
+
+  * [GCC](https://www.gnu.org/software/gcc/ )
+
+  * [GNU Emacs](https://www.gnu.org/software/emacs/ ) which has been
+    compiled with the `--with-dynamic-modules` build configuration
+    option set.
+
+  * [`libffi`](https://github.com/libffi/libffi ).
+
+  * [`libltdl`](https://www.gnu.org/software/libtool/ ), also known as
+    `libtool`.
+
+  * [GNU Make](https://www.gnu.org/software/make/ ) for building.
+
+Of course all of Emacs, `libffi` and `libltdl` must all be built with
+the same GCC toolchain, but any recent build of GNU Make will do.
+
+### Use GNU Make to build
+
+Simply change to the directory containing this `README.md` file and
+run the command:
+
+```sh
+make
+```
+
+You may need to specify the location of your Emacs build if you have
+built it locally. To do this set the `EMACS_BUILDDIR` environment
+variable, for example:
+
+```sh
+make EMACS_BULIDDIR=/home/myself/Emacs/29.1/emacs
+```
+
+If you have also built `libffi` and/or `libltdl` locally and installed
+them in `/usr/local`, you should also set the `SYS_INCLUDEDIRS`
+environment variable:
+
+```sh
+make EMACS_BULIDDIR=/home/myself/Emacs/29.1/emacs \
+     SYS_INCLUDEDIRS=/usr/local/include
+```
+
+Emacs is also used to byte-code compile the `ffi.el` file. This is not
+a necessary step, but it may cause `make` to report an error if the
+`emacs` executable is not found in `PATH`.
+
+### Update you Emacs configuration file
+
+When `make` completes, you will need to add this project directory to
+your Emacs `load-path` and `dynamic-library-alist` in your Emacs
+configuration file, typically `~/emacs.d/init.el`. For example:
+
+```emacs-lisp
+(add-to-list 'dynamic-library-alist "/home/myself/Emacs/emacs-ffi")
+(add-to-list 'load-path "/home/myself/Emacs/emacs-ffi")
+```
+
+# Defining FFI bindings in Emacs Lisp
+
+## Types
 
 Currently the library supports primitive and structure types for
 arguments and return types.
@@ -55,7 +118,7 @@ by the FFI will automatically be reclaimed by the garbage collector --
 there is no need to explicitly free it.  (Contrast this with the
 behavior of `ffi-make-c-string`, which requires an explicit free.)
 
-# Type Conversions
+## Type Conversions
 
 Currently all type conversions work the same in both directions.
 
@@ -74,7 +137,7 @@ Currently all type conversions work the same in both directions.
   user-pointer will have a finalizer attached that will free the
   memory when the user-pointer is garbage collected.
 
-# Exported Functions
+## Exported Functions
 
 * `(define-ffi-library SYMBOL NAME)`.  Used to define a function that
   lazily loads a library.  Like:
@@ -156,7 +219,7 @@ Currently all type conversions work the same in both directions.
 * `(ffi-free POINTER)`.  Free some memory allocated with
   `ffi-allocate` or `ffi-make-c-string`.
 
-# Internal Functions
+## Internal Functions
 
 * `(ffi--dlopen STR)`.  A simple wrapper for `dlopen` (actually
   `lt_dlopen`).  This returns the library handle, a C pointer.
