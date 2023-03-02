@@ -32,7 +32,7 @@ CFLAGS += -g3 -Og -finline-small-functions -shared -fPIC
 # Set this to debug make check.
 #GDB = gdb --args
 
-all: ffi-module.so ffi.elc
+all: ffi-module.so ffi.elc message
 
 ffi-module.so: ffi-module.o
 	$(CC) $(CFLAGS) $(ALL_INCLUDE_DIRS) $(LDFLAGS) -o ffi-module.so ffi-module.o $(LIBS)
@@ -58,6 +58,21 @@ test.so: test.o
 	$(CC) $(LDFLAGS) -o test.so test.o;
 
 test.o: test.c
+
+.PHONY: message
+
+MESSAGE_UPDATE_INIT_EL = ' \
+;; Compilation successful.\n \
+;; Please add the following line of code to\n \
+;; your ~/.emacs.d/init.el or ~/.emacs.el\n \
+;; Emacs configuration file:\n \
+;; ---------------------\n \
+(add-to-list (quote dynamic-library-alist) "$(PWD)")\n \
+(add-to-list (quote load-path) "$(PWD)")\n \
+'
+
+message:
+	@printf $(MESSAGE_UPDATE_INIT_EL)
 
 clean:
 	rm -vf ffi-module.o ffi-module.so test.o test.so ffi.elc;
