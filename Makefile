@@ -1,9 +1,31 @@
-# Where your dynamic-module-enabled Emacs build lies.
-EMACS_BUILDDIR = /home/tromey/Emacs/emacs
+#EMACS_BUILDDIR := /home/tromey/Emacs/emacs
+
+# STEP 1 (optional):
+#
+#   Uncomment the EMACS_BUILDDIR setting above if you want to include
+#   souces from a local Emacs build.  NOTE that the 'dynamic-modules'
+#   build option must be enabled (pass '--with-dynamic-modules' to the
+#   'configure' script when building Emacs).
+
+#SYS_INCLUDEDIRS := -I/usr/local/include
+
+# STEP 2 (optional):
+#
+#   Construct a list of additional system libraries you want to
+#   include. Each directory must have the string "-I" prepended to it.
+
+INCLUDE_DIRS :=
+
+ifdef EMACS_BULIDDIR
+  INCLUDE_DIRS += -I$(EMACS_BUILDDIR)/src/ -I$(EMACS_BUILDDIR)/lib/
+endif
+ifdef SYS_INCLUDEDIRS
+  ALL_INCLUDE_DIRS += $(SYS_INCLUDEDIRS)
+endif
 
 LDFLAGS = -shared
 LIBS = -lffi -lltdl
-CFLAGS += -g3 -Og -finline-small-functions -shared -fPIC -I$(EMACS_BUILDDIR)/src/ -I$(EMACS_BUILDDIR)/lib/
+CFLAGS += -g3 -Og -finline-small-functions -shared -fPIC
 
 # Set this to debug make check.
 #GDB = gdb --args
@@ -11,7 +33,7 @@ CFLAGS += -g3 -Og -finline-small-functions -shared -fPIC -I$(EMACS_BUILDDIR)/src
 all: ffi-module.so
 
 ffi-module.so: ffi-module.o
-	$(CC) $(LDFLAGS) -o ffi-module.so ffi-module.o $(LIBS)
+	$(CC) $(CFLAGS) $(ALL_INCLUDE_DIRS) $(LDFLAGS) -o ffi-module.so ffi-module.o $(LIBS)
 
 ffi-module.o: ffi-module.c
 
@@ -22,9 +44,9 @@ check: ffi-module.so test.so
 	  -f ert-run-tests-batch-and-exit
 
 test.so: test.o
-	$(CC) $(LDFLAGS) -o test.so test.o
+	$(CC) $(LDFLAGS) -o test.so test.o;
 
 test.o: test.c
 
 clean:
-	-rm -f ffi-module.o ffi-module.so test.o test.so
+	rm -vf ffi-module.o ffi-module.so test.o test.so;
